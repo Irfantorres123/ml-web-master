@@ -2,10 +2,10 @@
 FROM node:lts-alpine as build-step
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
+COPY ./src ./src
 COPY package.json ./
 RUN npm install
-COPY ./src ./src
 COPY ./public ./public
-ENV HOST=0.0.0.0
+ENV HOST 0.0.0.0
+EXPOSE 3000
 RUN npm start
-

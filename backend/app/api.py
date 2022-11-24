@@ -13,6 +13,7 @@ from fastapi.responses import StreamingResponse, FileResponse
 import torchvision.transforms as tt
 import numpy as np
 import base64
+from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 # origins = [
@@ -31,7 +32,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 dir = './app'
 
 #mnist get result
-@app.get("/result")
+@app.get("/api/result")
 async def result():
     model = Model(3,1)
     print(os.getcwd())
@@ -130,7 +131,7 @@ def concat(image,invert=False):
     final_image.resize(256,256)
     return final_image
 # scoliosis get result
-@app.get("/result-prediction")
+@app.get("/api/result-prediction")
 async def result_scoliosis():
     print("Reached")
     model=Model(3,1)
@@ -175,17 +176,11 @@ async def result_scoliosis():
         except Exception as e:
             print(e)
             raise HTTPException(status_code=415, detail="unsupported input")
-        out_name = name.replace('.jpg', '.png')
-        dict = {}
-        dict['key'] = str(i)
-        dict['dir'] = 'api/getImage/'+out_name
-        dict['name'] = name
-        ret.append(dict)
-        i += 1
+       
     return ret
 
 # delete all uploaded files
-@app.get("/clear")
+@app.get("/api/clear")
 async def clear():
     filelist = glob.glob(os.path.join(dir, "data/*"))
     secondfilelist=glob.glob(os.path.join(dir, "results/*"))
@@ -196,12 +191,12 @@ async def clear():
     return 'success'
 
 # return image path for display
-@app.get('/getImage/{name}')
+@app.get('/api/getImage/{name}')
 async def getImage(name: str):
     return FileResponse(path=os.path.join(dir, 'data/'+name))
 
 # upload image
-@app.post("/upload")
+@app.post("/api/upload")
 async def upload(file: UploadFile = File()):
     try:
         contents = await file.read()
@@ -256,3 +251,11 @@ async def upload(file: UploadFile = File()):
             # d['original']=original_image
             # d['predictions']=encoded_outputs
             # return d
+
+app.mount('/public', StaticFiles(directory=os.path.join(dir,'../../client/build/')), name='public')
+
+#serve react app at frontend/build
+@app.get("/")
+async def main():
+    print("here")
+    return FileResponse(path=os.path.join(dir, '../../client/build/index.html'))
