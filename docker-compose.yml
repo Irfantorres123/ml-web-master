@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    restart: always
+    command: python app/main.py
+    ports:
+      - "8000:8000"
+    volumes:
+      - caddy-data:/data
+      - caddy-results:/results
+  frontend:
+    build:
+      context: ./frontend
+    restart: always
+    ports:
+      - "80:3000"
+    depends_on:
+      - backend
+
+volumes:
+  caddy-data:
+  caddy-config:
+  caddy-results:
