@@ -7,4 +7,4 @@ services:
     restart: always
     command: python app/main.py
     ports:
-      - "8000:80"
+      - "8128:8000"
